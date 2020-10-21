@@ -3,8 +3,21 @@
 #include <SDL.h>
 #include <SDL_net.h>
 
+const int PORT = 1234;
+const int BUFFER_SIZE = 2000;
+
+//struct to store host address (IP) and port number
+IPaddress ip;
+
+//socket to transfer data to server
+TCPsocket socket = nullptr;
+
 int main(int argc, char* argv[])
 {
+
+	//=============================================================
+	//initialization
+	//=============================================================
 
 	if (SDL_Init(SDL_INIT_EVERYTHING) == -1)
 	{
@@ -20,20 +33,18 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 
-	std::cout << "#=============================#" << std::endl;
-	std::cout << "| Welcome to Chat Master 2000 |" << std::endl;
-	std::cout << "#=============================#" << std::endl;
+	//=============================================================
+	//client code
+	//=============================================================
 
-	IPaddress ip;
-
-	if (SDLNet_ResolveHost(&ip, "www.londonmet.ac.uk", 80) == -1)
+	if (SDLNet_ResolveHost(&ip, "127.0.0.1", PORT) == -1)
 	{
-		std::cout << "Error establishing connection with website." << std::endl;
+		std::cout << "Error creating a client." << std::endl;
 		system("pause");
 		return 0;
 	}
 
-	TCPsocket socket = SDLNet_TCP_Open(&ip);
+	socket = SDLNet_TCP_Open(&ip);
 
 	if (!socket)
 	{
@@ -42,42 +53,29 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 
+	std::cout << "Connected to server." << std::endl;
+	system("pause");
+
+	system("cls");
+	std::cout << "#=============================#" << std::endl;
+	std::cout << "| Welcome to Chat Master 2000 |" << std::endl;
+	std::cout << "#=============================#" << std::endl;
+
+	//place to store received message
+	char message[BUFFER_SIZE];
+
+	//receive message from server
+	if (SDLNet_TCP_Recv(socket, message, BUFFER_SIZE) <= 0)
+	{
+		std::cout << "Error receiving message from server." << std::endl;
+	}
+
 	else
 	{
-		//special request to get HTML code from website
-		std::string message = "GET /HTTPS/1.0\r\n\r\n";
-
-		//we need length of message in order to send data
-		//we add an extra space for the terminating null '\0'
-		int messageLength = message.length() + 1;
-
-		//send message via open socket that we opened up above
-		//if return value is less than length of message then error occurred
-		if (SDLNet_TCP_Send(socket, message.c_str(), messageLength) < messageLength)
-		{
-			std::cout << "Error sending request to website." << std::endl;
-		}
-
-		else
-		{
-			const int BUFFER_SIZE = 2000;
-
-			char response[BUFFER_SIZE];
-
-			if (SDLNet_TCP_Recv(socket, response, BUFFER_SIZE) <= 0)
-			{
-				std::cout << "Error receiving message from website." << std::endl;
-			}
-
-			else
-			{
-				std::cout << response << std::endl;
-			}
-		}
-
-		SDLNet_TCP_Close(socket);
-
+		std::cout << message << std::endl;
 	}
+
+	SDLNet_TCP_Close(socket);
 
 	//shutdown tasks
 	SDLNet_Quit();
