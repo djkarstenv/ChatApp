@@ -55,11 +55,6 @@ void TCPConnection::SendMessage(const std::string& message)
 	{
 		std::cout << "Error sending message to client." << std::endl;
 	}
-
-	else
-	{
-		std::cout << "Message sent to client." << std::endl;
-	}
 }
 
 void TCPConnection::ReceiveMessage(std::string& message)
